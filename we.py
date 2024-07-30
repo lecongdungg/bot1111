@@ -6,15 +6,37 @@ import shutil
 import os
 import uuid
 import threading
+from flask import Flask, request, jsonify
 
 API_TOKEN = '6752131474:AAHx2UIGONwXULSVo9mW_L2pQr9Ve-FZijk'
 bot = telebot.TeleBot(API_TOKEN)
+app = Flask(__name__)
 
 # Cấu hình logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Từ điển để theo dõi trạng thái của các ID
 running_ids = {}
+
+@app.route('/start_bot', methods=['POST'])
+def start_bot():
+    if not bot_thread.is_alive():
+        bot_thread.start()
+        return jsonify({"status": "Bot started"}), 200
+    else:
+        return jsonify({"status": "Bot is already running"}), 200
+
+@app.route('/stop_bot', methods=['POST'])
+def stop_bot():
+    if bot_thread.is_alive():
+        bot.stop_polling()
+        return jsonify({"status": "Bot stopped"}), 200
+    else:
+        return jsonify({"status": "Bot is not running"}), 200
+
+@app.route('/status', methods=['GET'])
+def status():
+    return jsonify({"running_ids": list(running_ids.keys()), "bot_status": "running" if bot_thread.is_alive() else "stopped"}), 200
 
 @bot.message_handler(commands=['start'])
 def handle_start(message):
@@ -123,4 +145,12 @@ def handle_id(message):
         bot.reply_to(message, f"Có lỗi xảy ra: {str(e)}")
 
 logging.info("Bot đang chạy...")
-bot.polling()
+
+# Tạo một luồng để chạy bot.polling()
+def start_bot_polling():
+    bot.polling()
+
+bot_thread = threading.Thread(target=start_bot_polling)
+
+if __name__ == "__main__":
+    app.run(port=5000)
