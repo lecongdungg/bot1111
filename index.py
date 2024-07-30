@@ -6,11 +6,11 @@ import shutil
 import os
 import uuid
 import threading
-from keep_alive import keep_alive
+from keep_alive import keep_alive  # Import hàm keep_alive
 
 API_TOKEN = '6752131474:AAHx2UIGONwXULSVo9mW_L2pQr9Ve-FZijk'
 bot = telebot.TeleBot(API_TOKEN)
-keep_alive()
+keep_alive()  # Khởi động server Flask để giữ cho bot hoạt động liên tục
 
 # Cấu hình logging
 logging.basicConfig(level=logging.INFO,
@@ -139,6 +139,3 @@ def handle_id(message):
 
 logging.info("Bot đang chạy...")
 bot.polling()
-
-if __name__ == "__main__":
-    executor.start_polling(dp)
